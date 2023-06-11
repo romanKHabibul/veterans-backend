@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Request } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { VeteransService } from './veterans.service';
 import { Auth } from 'src/decorators/auth.decorator';
 import { VeteranEntity } from './veteran.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('veterans')
 export class VeteransController {
@@ -24,6 +25,18 @@ export class VeteransController {
   @Auth()
   addVeteran(@Body() request: VeteranEntity){
     return this.veteransService.addVeteran(request)
+  }
+
+  @Post("/upload/:id")
+  @HttpCode(200)
+  @Auth()
+  @UseInterceptors(FileInterceptor('media'))
+  uploadFile(
+    @UploadedFile() mediaFile: Express.Multer.File,
+    @Param('id') id: string,
+    @Query('folder') folder?: string
+  ){
+    return this.veteransService.saveMedia(mediaFile, +id, folder)
   }
 
   @Put("/:id")

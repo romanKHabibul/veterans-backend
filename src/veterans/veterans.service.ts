@@ -1,7 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { VeteranEntity } from './veteran.entity';
-import { Repository } from 'typeorm';
+import { FindOptionsWhereProperty, ILike, Repository } from 'typeorm';
+import {path} from 'app-root-path';
+import {ensureDir, writeFile} from 'fs-extra'
 
 @Injectable()
 export class VeteransService {
@@ -34,7 +36,7 @@ export class VeteransService {
     async getAllWithPagination(page: number, limit: number){
         const veterans = await this.veteranRepository.find({
             order: {
-                surname: "DESC"
+                surname: "ASC"
             },
             take: limit,
             skip: (page-1) * limit
@@ -44,9 +46,25 @@ export class VeteransService {
     }
 
     async getAll(){
-        const veterans = await this.veteranRepository.find()
+        const veterans =  this.veteranRepository.find({
+            order: {
+                surname: "ASC"
+            }
+        })
         if(!veterans) throw new NotFoundException("Ветеранов нет")
         return veterans
+    }
+
+    async saveMedia(mediaFile: Express.Multer.File, id: number, folder= 'default'){
+        const uploadFolder = `${path}/uploads/${folder}`
+        await ensureDir(uploadFolder)
+        await writeFile(
+            `${uploadFolder}/${mediaFile.originalname}`,
+            mediaFile.buffer
+        )
+        const url = `http://localhost:3000/uploads/${folder}/${mediaFile.originalname}`
+        const veteran = await this.veteranRepository.update(+id, {imagePath: url})
+        return veteran
     }
 
 }

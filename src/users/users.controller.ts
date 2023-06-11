@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Auth } from 'src/decorators/auth.decorator';
 import { CurrentUser } from 'src/decorators/user.decorator';
 import { UserEntity } from './user.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 export class UsersController {
@@ -21,6 +22,18 @@ export class UsersController {
 	getProfile(@CurrentUser('id') id: number){
 		return this.usersService.getById(id)
 	} 
+
+	@Post("/upload")
+	@HttpCode(200)
+	@Auth()
+	@UseInterceptors(FileInterceptor('media'))
+	uploadFile(
+		@UploadedFile() mediaFile: Express.Multer.File,
+		@CurrentUser('id') id: string,
+		@Query('folder') folder?: string
+	){
+		return this.usersService.saveMedia(mediaFile, +id, folder)
+	}
 	
 	@Get("/:id")
 	@HttpCode(200)
