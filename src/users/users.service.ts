@@ -58,7 +58,7 @@ export class UsersService {
             `${uploadFolder}/${mediaFile.originalname}`,
             mediaFile.buffer
         )
-        const url = `http://localhost:3000/uploads/${folder}/${mediaFile.originalname}`
+        const url = `https://veterans-backend.onrender.com/uploads/${folder}/${mediaFile.originalname}`
         const user = await this.userRepository.update(+id, {avatatPath: url})
         return user
     }
